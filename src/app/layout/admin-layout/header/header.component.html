@@ -1,0 +1,15 @@
+<header class="flex h-14 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-6">
+  <div class="text-sm font-medium text-gray-600">Wineo Admin</div>
+  <div class="flex items-center gap-4">
+    @if (auth.currentUser(); as user) {
+      <span class="text-sm text-gray-700">{{ user.firstName }} {{ user.lastName }}</span>
+    }
+    <button
+      type="button"
+      (click)="auth.logout()"
+      class="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+    >
+      Logout
+    </button>
+  </div>
+</header>
