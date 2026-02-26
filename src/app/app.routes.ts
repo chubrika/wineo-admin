@@ -5,6 +5,9 @@ import { LoginComponent } from './pages/login/login.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { ProductsComponent } from './pages/products/products.component';
 import { CategoriesComponent } from './pages/categories/categories.component';
+import { FiltersComponent } from './pages/filters/filters.component';
+import { RegionsComponent } from './pages/regions/regions.component';
+import { CitiesComponent } from './pages/cities/cities.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
@@ -21,6 +24,9 @@ export const routes: Routes = [
       { path: 'dashboard', component: DashboardComponent },
       { path: 'products', component: ProductsComponent },
       { path: 'categories', component: CategoriesComponent },
+      { path: 'filters', component: FiltersComponent },
+      { path: 'regions', component: RegionsComponent },
+      { path: 'cities', component: CitiesComponent },
     ],
   },
   { path: '**', redirectTo: '/dashboard' },

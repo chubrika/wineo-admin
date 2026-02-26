@@ -20,6 +20,12 @@ export interface ListingCategory {
   slug: string;
 }
 
+/** Filter attribute value for a listing (stored when category has filters). */
+export interface ListingAttribute {
+  filterId: string;
+  value: string | number | boolean | string[];
+}
+
 export interface ListingLocation {
   region: string;
   city: string;
@@ -46,12 +52,15 @@ export interface ListingMonetization {
 
 export interface Listing {
   _id: string;
+  id?: string; // API may return id instead of _id
   title: string;
   slug: string;
   description: string;
   type: ListingType;
 
   category: ListingCategory;
+  categoryId?: string;
+  attributes?: ListingAttribute[];
 
   price: number;
   currency: ListingCurrency;
@@ -94,6 +103,8 @@ export interface ListingCreatePayload {
   type: ListingType;
 
   category: ListingCategory;
+  categoryId?: string;
+  attributes?: ListingAttribute[];
 
   price: number;
   currency: ListingCurrency;

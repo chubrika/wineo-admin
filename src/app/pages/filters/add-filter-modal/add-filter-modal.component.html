@@ -1,0 +1,170 @@
+@if (isOpen) {
+  <div
+    data-modal-backdrop
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    (click)="onBackdropClick($event)"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="filter-modal-title"
+  >
+    <div
+      class="flex max-h-[90vh] w-full max-w-lg flex-col rounded-xl bg-white shadow-xl"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="flex shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4">
+        <h2 id="filter-modal-title" class="text-lg font-semibold text-gray-900">
+          {{ editFilter ? 'ფილტრის რედაქტირება' : 'ფილტრის დამატება' }}
+        </h2>
+        <button
+          type="button"
+          (click)="close.emit()"
+          class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          aria-label="Close"
+        >
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex min-h-0 flex-1 flex-col">
+        <div class="min-h-0 flex-1 overflow-y-auto px-6 py-4">
+          <div class="space-y-4">
+            <div>
+              <label for="filter-name" class="block text-sm font-medium text-gray-700">დასახელება</label>
+              <input
+                id="filter-name"
+                type="text"
+                formControlName="name"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                placeholder="მაგ. ბრენდი"
+              />
+              @if (form.get('name')?.invalid && form.get('name')?.touched) {
+                <p class="mt-1 text-sm text-red-600">სახელი სავალდებულოა (2–100 სიმბოლო).</p>
+              }
+            </div>
+
+            <div>
+              <label for="filter-slug" class="block text-sm font-medium text-gray-700">Slug</label>
+              <input
+                id="filter-slug"
+                type="text"
+                formControlName="slug"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                placeholder="მაგ. brand"
+              />
+              <p class="mt-1 text-xs text-gray-500">არასავალდებულო. თუ ცარიელია, გენერირდება სახელიდან.</p>
+            </div>
+
+            <div>
+              <label for="filter-type" class="block text-sm font-medium text-gray-700">ტიპი</label>
+              <select
+                id="filter-type"
+                formControlName="type"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+              >
+                @for (t of filterTypes; track t) {
+                  <option [value]="t">{{ t }}</option>
+                }
+              </select>
+            </div>
+
+            @if (isSelectType) {
+              <div>
+                <label for="filter-options" class="block text-sm font-medium text-gray-700">პარამეტრები (თითო ხაზზე)</label>
+                <textarea
+                  id="filter-options"
+                  formControlName="optionsStr"
+                  rows="4"
+                  class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                  placeholder="მაგ.:&#10;Option A&#10;Option B"
+                ></textarea>
+              </div>
+            }
+
+            <div>
+              <label for="filter-unit" class="block text-sm font-medium text-gray-700">ერთეული</label>
+              <input
+                id="filter-unit"
+                type="text"
+                formControlName="unit"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                placeholder="მაგ. ლიტრი, კვტ"
+                maxlength="20"
+              />
+            </div>
+
+            <div>
+              <label for="filter-category" class="block text-sm font-medium text-gray-700">კატეგორია</label>
+              <select
+                id="filter-category"
+                formControlName="categoryId"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+              >
+                <option [ngValue]="null">— აირჩიეთ —</option>
+                @for (cat of categoryOptions; track cat.id) {
+                  <option [ngValue]="cat.id">{{ cat.name }}</option>
+                }
+              </select>
+              <p class="mt-1 text-xs text-gray-500">ფილტრი გამოჩნდება ამ კატეგორიაში (და შვილებში, თუ ჩართულია მემკვიდრეობა).</p>
+            </div>
+
+            <div class="flex flex-wrap gap-4">
+              <label class="inline-flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  formControlName="applyToChildren"
+                  class="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                />
+                <span class="text-sm font-medium text-gray-700">შვილ კატეგორიებზე</span>
+              </label>
+              <label class="inline-flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  formControlName="isRequired"
+                  class="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                />
+                <span class="text-sm font-medium text-gray-700">სავალდებულო</span>
+              </label>
+              <label class="inline-flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  formControlName="isActive"
+                  class="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                />
+                <span class="text-sm font-medium text-gray-700">აქტიური</span>
+              </label>
+            </div>
+
+            <div>
+              <label for="filter-sortOrder" class="block text-sm font-medium text-gray-700">სორტირების რიგი</label>
+              <input
+                id="filter-sortOrder"
+                type="number"
+                formControlName="sortOrder"
+                min="0"
+                class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="flex shrink-0 justify-end gap-2 border-t border-gray-200 px-6 py-4">
+          <button
+            type="button"
+            (click)="close.emit()"
+            class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          >
+            გაუქმება
+          </button>
+          <button
+            type="submit"
+            class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          >
+            {{ editFilter ? 'შენახვა' : 'დამატება' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

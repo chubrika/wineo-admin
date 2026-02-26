@@ -1,4 +1,4 @@
-@if (isOpen) {
+@if (isOpen()) {
   <div
     data-modal-backdrop
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
@@ -12,7 +12,7 @@
       (click)="$event.stopPropagation()"
     >
       <div class="flex shrink-0 items-center justify-between border-b border-gray-200 px-6 py-4">
-        <h2 id="modal-title" class="text-lg font-semibold text-gray-900">Add listing</h2>
+        <h2 id="modal-title" class="text-lg font-semibold text-gray-900">{{ editListing() ? 'პროდუქტის რედაქტირება' : 'პროდუქტის დამატება' }}</h2>
         <button
           type="button"
           (click)="emitClose()"
@@ -30,134 +30,209 @@
           <div class="space-y-6">
             <!-- Basic -->
             <section>
-              <h3 class="mb-3 text-sm font-medium text-gray-900">Basic info</h3>
+              <h3 class="mb-3 text-sm font-medium text-gray-900">ძირითადი ინფორმაცია</h3>
               <div class="space-y-3">
                 <div>
-                  <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+                  <label for="title" class="block text-sm font-medium text-gray-700">სათაური</label>
                   <input
                     id="title"
                     type="text"
                     formControlName="title"
                     class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="e.g. Stainless steel wine press"
+                    placeholder="მაგ. ყურძნის პრესი"
                   />
                   @if (form.get('title')?.invalid && form.get('title')?.touched) {
-                    <p class="mt-1 text-sm text-red-600">Title is required (2–200 characters).</p>
+                    <p class="mt-1 text-sm text-red-600">სათაური სავალდებულოა (2–200 სიმბოლო).</p>
                   }
                 </div>
                 <div>
-                  <label for="slug" class="block text-sm font-medium text-gray-700">Slug (optional)</label>
-                  <input
-                    id="slug"
-                    type="text"
-                    formControlName="slug"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="url-friendly-slug"
-                  />
-                </div>
-                <div>
-                  <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                  <label for="description" class="block text-sm font-medium text-gray-700">აღწერა</label>
                   <textarea
                     id="description"
                     formControlName="description"
                     rows="3"
                     class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="Describe the item"
+                    placeholder="აღწერა სავალდებულოა"
                   ></textarea>
                   @if (form.get('description')?.invalid && form.get('description')?.touched) {
                     <p class="mt-1 text-sm text-red-600">Description is required.</p>
                   }
                 </div>
                 <div>
-                  <label for="type" class="block text-sm font-medium text-gray-700">Type</label>
-                  <select
-                    id="type"
-                    formControlName="type"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                  <span class="block text-sm font-medium text-gray-700">ტიპი</span>
+                  <div
+                    role="group"
+                    aria-label="Listing type"
+                    class="mt-1 inline-flex rounded-lg border border-gray-300 p-0.5 bg-gray-100"
                   >
                     @for (opt of listingTypes; track opt.value) {
-                      <option [value]="opt.value">{{ opt.label }}</option>
+                      <button
+                        type="button"
+                        (click)="form.get('type')?.setValue(opt.value)"
+                        class="rounded-md cursor-pointer px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-300 focus:outline-none"
+                        [class.bg-green-600]="form.get('type')?.value === opt.value"
+                        [class.text-white]="form.get('type')?.value === opt.value"
+                        [class.shadow-sm]="form.get('type')?.value === opt.value"
+                        [class.text-gray-600]="form.get('type')?.value !== opt.value"
+                      >
+                        {{ opt.label }}
+                      </button>
                     }
-                  </select>
+                  </div>
                 </div>
               </div>
             </section>
 
             <!-- Category -->
             <section>
-              <h3 class="mb-3 text-sm font-medium text-gray-900">Category</h3>
-              <div formGroupName="category" class="grid grid-cols-2 gap-3">
-                <div>
-                  <label for="categoryName" class="block text-sm font-medium text-gray-700">Category name</label>
-                  <input
-                    id="categoryName"
-                    type="text"
-                    formControlName="name"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="e.g. Wine press"
-                  />
-                  @if (form.get('category.name')?.invalid && form.get('category.name')?.touched) {
-                    <p class="mt-1 text-sm text-red-600">Required.</p>
+              <h3 class="mb-3 text-sm font-medium text-gray-900">კატეგორიები</h3>
+              <div>
+                <label for="categoryId" class="block text-sm font-medium text-gray-700">კატეგორია</label>
+                <select
+                  id="categoryId"
+                  formControlName="categoryId"
+                  class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                >
+                  <option [ngValue]="null">— Select category —</option>
+                  @for (cat of categoryOptions; track cat.id) {
+                    <option [ngValue]="cat.id">{{ cat.name }}</option>
                   }
-                </div>
-                <div>
-                  <label for="categorySlug" class="block text-sm font-medium text-gray-700">Category slug</label>
-                  <input
-                    id="categorySlug"
-                    type="text"
-                    formControlName="slug"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="wine-press"
-                  />
-                  @if (form.get('category.slug')?.invalid && form.get('category.slug')?.touched) {
-                    <p class="mt-1 text-sm text-red-600">Required.</p>
-                  }
-                </div>
+                </select>
+                @if (form.get('categoryId')?.invalid && form.get('categoryId')?.touched) {
+                  <p class="mt-1 text-sm text-red-600">Category is required.</p>
+                }
               </div>
+              @if (loadingFilters) {
+                <p class="mt-2 text-sm text-gray-500">Loading filters…</p>
+              }
+              @if (categoryFilters.length > 0) {
+                <div [formGroup]="attributeForm" class="mt-4 space-y-3">
+                  <h4 class="text-sm font-medium text-gray-700">Attributes</h4>
+                  @for (f of categoryFilters; track f.id) {
+                    <div>
+                      <label [for]="'attr-' + f.id" class="block text-sm font-medium text-gray-700">
+                        {{ f.name }}
+                        @if (f.unit) {
+                          <span class="font-normal text-gray-500">({{ f.unit }})</span>
+                        }
+                        @if (f.isRequired) {
+                          <span class="text-red-600">*</span>
+                        }
+                      </label>
+                      @switch (f.type) {
+                        @case ('select') {
+                          <select
+                            [id]="'attr-' + f.id"
+                            [formControlName]="f.id"
+                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                          >
+                            <option [ngValue]="null">—</option>
+                            @for (opt of f.options; track opt) {
+                              <option [ngValue]="opt">{{ opt }}</option>
+                            }
+                          </select>
+                        }
+                        @case ('number') {
+                          <input
+                            [id]="'attr-' + f.id"
+                            type="number"
+                            [formControlName]="f.id"
+                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                            [placeholder]="f.unit || ''"
+                          />
+                        }
+                        @case ('checkbox') {
+                          <div class="mt-1">
+                            <input
+                              [id]="'attr-' + f.id"
+                              type="checkbox"
+                              [formControlName]="f.id"
+                              class="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-500"
+                            />
+                          </div>
+                        }
+                        @default {
+                          <input
+                            [id]="'attr-' + f.id"
+                            type="text"
+                            [formControlName]="f.id"
+                            class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                            [placeholder]="f.type === 'range' ? 'e.g. 10 - 20' : ''"
+                          />
+                        }
+                      }
+                    </div>
+                  }
+                </div>
+              }
             </section>
 
             <!-- Pricing -->
             <section>
-              <h3 class="mb-3 text-sm font-medium text-gray-900">Pricing</h3>
-              <div class="grid grid-cols-2 gap-3">
+              <h3 class="mb-3 text-sm font-medium text-gray-900">ღირებულება</h3>
+              <div class="space-y-4">
                 <div>
-                  <label for="price" class="block text-sm font-medium text-gray-700">Price</label>
-                  <input
-                    id="price"
-                    type="number"
-                    formControlName="price"
-                    step="0.01"
-                    min="0"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="0.00"
-                  />
-                  @if (form.get('price')?.invalid && form.get('price')?.touched) {
-                    <p class="mt-1 text-sm text-red-600">Valid price is required.</p>
-                  }
-                </div>
-                <div>
-                  <label for="currency" class="block text-sm font-medium text-gray-700">Currency</label>
-                  <select
-                    id="currency"
-                    formControlName="currency"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                  >
-                    @for (c of currencies; track c.value) {
-                      <option [value]="c.value">{{ c.label }}</option>
-                    }
-                  </select>
-                </div>
-                <div>
-                  <label for="priceType" class="block text-sm font-medium text-gray-700">Price type</label>
-                  <select
-                    id="priceType"
-                    formControlName="priceType"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                  <span class="block text-sm font-medium text-gray-700">ფასის ტიპი</span>
+                  <div
+                    role="group"
+                    aria-label="Price type"
+                    class="mt-1 inline-flex rounded-lg border border-gray-300 p-0.5 bg-gray-100"
                   >
                     @for (p of priceTypes; track p.value) {
-                      <option [value]="p.value">{{ p.label }}</option>
+                      <button
+                        type="button"
+                        (click)="form.get('priceType')?.setValue(p.value)"
+                        class="rounded-md px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-50 focus:outline-none cursor-pointer"
+                        [class.bg-green-600]="form.get('priceType')?.value === p.value"
+                        [class.text-white]="form.get('priceType')?.value === p.value"
+                        [class.shadow-sm]="form.get('priceType')?.value === p.value"
+                        [class.text-gray-600]="form.get('priceType')?.value !== p.value"
+                      >
+                        {{ p.label }}
+                      </button>
                     }
-                  </select>
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label for="price" class="block text-sm font-medium text-gray-700">ფასი</label>
+                    <input
+                      id="price"
+                      type="number"
+                      formControlName="price"
+                      step="0.01"
+                      min="0"
+                      class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      placeholder="0.00"
+                    />
+                    @if (form.get('price')?.invalid && form.get('price')?.touched) {
+                      <p class="mt-1 text-sm text-red-600">Valid price is required.</p>
+                    }
+                  </div>
+                  <div>
+                    <span class="block text-sm font-medium text-gray-700">ვალუტა</span>
+                    <div
+                      role="group"
+                      aria-label="Currency"
+                      class="mt-1 inline-flex rounded-lg border border-gray-300 p-0.5 bg-gray-100"
+                      [class.opacity-60]="form.get('priceType')?.value === 'negotiable'"
+                      [class.pointer-events-none]="form.get('priceType')?.value === 'negotiable'"
+                    >
+                      @for (c of currencies; track c.value) {
+                        <button
+                          type="button"
+                          (click)="form.get('currency')?.setValue(c.value)"
+                          class="rounded-md cursor-pointer px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-300 focus:outline-none"
+                          [class.bg-green-600]="form.get('currency')?.value === c.value"
+                          [class.text-white]="form.get('currency')?.value === c.value"
+                          [class.shadow-sm]="form.get('currency')?.value === c.value"
+                          [class.text-gray-600]="form.get('currency')?.value !== c.value"
+                        >
+                          {{ c.label }}
+                        </button>
+                      }
+                    </div>
+                  </div>
                 </div>
                 @if (isRent) {
                   <div>
@@ -182,105 +257,69 @@
 
             <!-- Location -->
             <section>
-              <h3 class="mb-3 text-sm font-medium text-gray-900">Location</h3>
+              <h3 class="mb-3 text-sm font-medium text-gray-900">მდებარეობა</h3>
               <div formGroupName="location" class="grid grid-cols-2 gap-3">
                 <div>
-                  <label for="region" class="block text-sm font-medium text-gray-700">Region</label>
-                  <input
-                    id="region"
-                    type="text"
-                    formControlName="region"
+                  <label for="location-regionId" class="block text-sm font-medium text-gray-700">რეგიონი</label>
+                  <select
+                    id="location-regionId"
+                    formControlName="regionId"
                     class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="e.g. Kakheti"
-                  />
-                  @if (form.get('location.region')?.invalid && form.get('location.region')?.touched) {
-                    <p class="mt-1 text-sm text-red-600">Required.</p>
+                  >
+                    <option value="">— აირჩიეთ რეგიონი —</option>
+                    @for (r of regionOptions; track r.id) {
+                      <option [value]="r.id">{{ r.label }}</option>
+                    }
+                  </select>
+                  @if (form.get('location.regionId')?.invalid && form.get('location.regionId')?.touched) {
+                    <p class="mt-1 text-sm text-red-600">რეგიონის არჩევა სავალდებულოა.</p>
                   }
                 </div>
                 <div>
-                  <label for="city" class="block text-sm font-medium text-gray-700">City</label>
-                  <input
-                    id="city"
-                    type="text"
-                    formControlName="city"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="e.g. Telavi"
-                  />
-                  @if (form.get('location.city')?.invalid && form.get('location.city')?.touched) {
-                    <p class="mt-1 text-sm text-red-600">Required.</p>
+                  <label for="location-cityId" class="block text-sm font-medium text-gray-700">ქალაქი</label>
+                  <select
+                    id="location-cityId"
+                    formControlName="cityId"
+                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    [disabled]="!form.get('location.regionId')?.value || loadingCities"
+                  >
+                    <option value="">— აირჩიეთ ქალაქი —</option>
+                    @for (c of cityOptions; track c.id) {
+                      <option [value]="c.id">{{ c.label }}</option>
+                    }
+                  </select>
+                  @if (loadingCities) {
+                    <p class="mt-1 text-xs text-gray-500">ქალაქების ჩატვირთვა…</p>
+                  }
+                  @if (form.get('location.cityId')?.invalid && form.get('location.cityId')?.touched) {
+                    <p class="mt-1 text-sm text-red-600">ქალაქის არჩევა სავალდებულოა.</p>
                   }
                 </div>
               </div>
             </section>
 
-            <!-- Specifications -->
+            <!-- Specifications: only condition; other attributes come from category filters -->
             <section>
-              <h3 class="mb-3 text-sm font-medium text-gray-900">Specifications</h3>
-              <div formGroupName="specifications" class="grid grid-cols-2 gap-3">
-                <div>
-                  <label for="condition" class="block text-sm font-medium text-gray-700">Condition</label>
-                  <select
-                    id="condition"
-                    formControlName="condition"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                  >
-                    <option value="">—</option>
-                    @for (cond of conditions; track cond.value) {
-                      <option [value]="cond.value">{{ cond.label }}</option>
-                    }
-                  </select>
-                </div>
-                <div>
-                  <label for="brand" class="block text-sm font-medium text-gray-700">Brand</label>
-                  <input
-                    id="brand"
-                    type="text"
-                    formControlName="brand"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="Optional"
-                  />
-                </div>
-                <div>
-                  <label for="model" class="block text-sm font-medium text-gray-700">Model</label>
-                  <input
-                    id="model"
-                    type="text"
-                    formControlName="model"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="Optional"
-                  />
-                </div>
-                <div>
-                  <label for="year" class="block text-sm font-medium text-gray-700">Year</label>
-                  <input
-                    id="year"
-                    type="number"
-                    formControlName="year"
-                    min="1900"
-                    max="2100"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="Optional"
-                  />
-                </div>
-                <div>
-                  <label for="capacity" class="block text-sm font-medium text-gray-700">Capacity</label>
-                  <input
-                    id="capacity"
-                    type="text"
-                    formControlName="capacity"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="e.g. 500 L"
-                  />
-                </div>
-                <div>
-                  <label for="power" class="block text-sm font-medium text-gray-700">Power</label>
-                  <input
-                    id="power"
-                    type="text"
-                    formControlName="power"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="e.g. 2.5 kW"
-                  />
+              <h3 class="mb-3 text-sm font-medium text-gray-900">მდგომარეობა</h3>
+              <div formGroupName="specifications">
+                <div
+                  role="group"
+                  aria-label="Condition"
+                  class="mt-1 inline-flex rounded-lg border border-gray-300 p-0.5 bg-gray-100"
+                >
+                  @for (cond of conditions; track cond.value) {
+                    <button
+                      type="button"
+                      (click)="form.get('specifications.condition')?.setValue(cond.value)"
+                      class="rounded-md cursor-pointer px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-300 focus:outline-none"
+                      [class.bg-green-600]="form.get('specifications.condition')?.value === cond.value"
+                      [class.text-white]="form.get('specifications.condition')?.value === cond.value"
+                      [class.shadow-sm]="form.get('specifications.condition')?.value === cond.value"
+                      [class.text-gray-600]="form.get('specifications.condition')?.value !== cond.value"
+                    >
+                      {{ cond.label }}
+                    </button>
+                  }
                 </div>
               </div>
             </section>
@@ -312,34 +351,6 @@
               </div>
             </section>
 
-            <!-- SEO -->
-            <section>
-              <h3 class="mb-3 text-sm font-medium text-gray-900">SEO (optional)</h3>
-              <div class="space-y-3">
-                <div>
-                  <label for="seoTitle" class="block text-sm font-medium text-gray-700">SEO title (max 70 chars)</label>
-                  <input
-                    id="seoTitle"
-                    type="text"
-                    formControlName="seoTitle"
-                    maxlength="70"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="Optional"
-                  />
-                </div>
-                <div>
-                  <label for="seoDescription" class="block text-sm font-medium text-gray-700">SEO description (max 160 chars)</label>
-                  <textarea
-                    id="seoDescription"
-                    formControlName="seoDescription"
-                    rows="2"
-                    maxlength="160"
-                    class="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
-                    placeholder="Optional"
-                  ></textarea>
-                </div>
-              </div>
-            </section>
           </div>
         </div>
 
@@ -354,9 +365,10 @@
             </button>
             <button
               type="submit"
-              class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              [disabled]="saving()"
+              class="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Save listing
+            {{ saving() ? 'შენახვა…' : (editListing() ? 'ცვლილებების შენახვა' : 'ჩანაწერის შენახვა') }}
             </button>
           </div>
         </div>

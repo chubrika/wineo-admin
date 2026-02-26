@@ -1,6 +1,6 @@
 <div>
   <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-semibold text-gray-900">პროდუქტები</h1>
+    <h1 class="text-2xl font-semibold text-gray-900">ქალაქები</h1>
     <button
       type="button"
       (click)="openAddModal()"
@@ -9,7 +9,7 @@
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
-      პროდუქტის დამატება
+      ქალაქის დამატება
     </button>
   </div>
 
@@ -20,7 +20,7 @@
       </div>
     }
     <div class="border-b border-gray-200 px-4 py-3 sm:px-6">
-      <p class="text-sm text-gray-600">პროდუქტების მართვა. გამოიყენეთ "პროდუქტის დამატება" რომ შექმნათ ახალი ჩანაწერი.</p>
+      <p class="text-sm text-gray-600">ქალაქების მართვა. ყოველი ქალაქი ეკუთვნის რეგიონს. გამოიყენეთ "ქალაქის დამატება" ახალი ჩანაწერის შესაქმნელად.</p>
     </div>
     <div class="p-4 sm:p-6">
       @if (loading) {
@@ -30,36 +30,32 @@
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
         </div>
-      } @else if (products.length > 0) {
+      } @else if (cities.length > 0) {
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
               <tr>
-                <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6"></th>
-                <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6">სათაური</th>
-                <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6">კატეგორია</th>
-                <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6">ტიპი</th>
-                <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6">ფასი</th>
-                <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6">სტატუსი</th>
+                <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6">დასახელება</th>
+                <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6">Slug</th>
+                <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 sm:px-6">რეგიონი</th>
                 <th scope="col" class="relative px-4 py-3 sm:px-6"><span class="sr-only">ქმედებები</span></th>
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 bg-white">
-              @for (product of products; track (product._id || product.id)) {
+              @for (city of cities; track city.id) {
                 <tr class="hover:bg-gray-50">
-                  <th><img [src]="product.thumbnail" [alt]="product.title" class="w-10 h-10 object-cover"></th>
-                  <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 sm:px-6">{{ product.title }}</td>
-                  <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 sm:px-6">{{ product.category.name }}</td>
-                  <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 sm:px-6">{{ product.type === 'rent' ? 'ქირავდება' : 'იყიდება' }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 sm:px-6">{{ city.label }}</td>
                   <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 sm:px-6">
-                    {{ product.priceType === 'negotiable' ? 'შეთანხმებით' : (product.price + ' ' + (product.currency === 'USD' ? '$' : '₾')) }}
+                    <span class="font-mono">{{ city.slug }}</span>
                   </td>
-                  <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 sm:px-6">{{ product.status }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-600 sm:px-6">
+                    {{ city.region?.label ?? '—' }}
+                  </td>
                   <td class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium sm:px-6">
                     <div class="flex justify-end gap-1">
                       <button
                         type="button"
-                        (click)="openEditModal(product)"
+                        (click)="openEditModal(city)"
                         class="rounded p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
                         title="რედაქტირება"
                         aria-label="რედაქტირება"
@@ -70,8 +66,8 @@
                       </button>
                       <button
                         type="button"
-                        (click)="deleteProduct(product)"
-                        [disabled]="deletingId === (product._id || product.id)"
+                        (click)="deleteCity(city)"
+                        [disabled]="deletingId === city.id"
                         class="rounded p-1.5 text-gray-500 hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
                         title="წაშლა"
                         aria-label="წაშლა"
@@ -88,19 +84,18 @@
           </table>
         </div>
       } @else {
-        <!-- Empty state -->
         <div class="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 py-12 text-center">
           <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8 4-8-4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5.9M19 21h2m-2 0h-5m-9 0H3" />
           </svg>
-          <h3 class="mt-2 text-sm font-medium text-gray-900">პროდუქტები ჯერ არ არის</h3>
-          <p class="mt-1 text-sm text-gray-500">გამოიყენეთ "პროდუქტის დამატება" რომ შექმნათ ახალი ჩანაწერი.</p>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">ქალაქები ჯერ არ არის</h3>
+          <p class="mt-1 text-sm text-gray-500">ჯერ დაამატეთ რეგიონები, შემდეგ გამოიყენეთ "ქალაქის დამატება".</p>
           <button
             type="button"
             (click)="openAddModal()"
             class="mt-4 inline-flex items-center rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
           >
-            პროდუქტის დამატება
+            ქალაქის დამატება
           </button>
         </div>
       }
@@ -108,10 +103,9 @@
   </div>
 </div>
 
-<app-add-product-modal
+<app-add-city-modal
   [isOpen]="isAddModalOpen"
-  [saving]="saving"
-  [editListing]="editListing"
+  [editCity]="editCity"
   (close)="closeAddModal()"
-  (saved)="onListingSaved($event)"
+  (saved)="onCitySaved($event)"
 />

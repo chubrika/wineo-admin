@@ -9,6 +9,8 @@ export interface Category {
   description: string;
   active: boolean;
   parentId: string | null;
+  level?: number;
+  path?: string[];
   createdAt?: string;
   updatedAt?: string;
 }
