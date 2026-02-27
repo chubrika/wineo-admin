@@ -91,6 +91,12 @@ export class AddProductModalComponent implements OnChanges {
       thumbnail: [''],
     });
 
+    // Auto-set slug from title (Georgian → Latin, URL-safe)
+    this.form.get('title')?.valueChanges.subscribe((title: string) => {
+      const slug = this.titleToSlug(title ?? '');
+      this.form.get('slug')?.setValue(slug, { emitEvent: false });
+    });
+
     this.form.get('type')?.valueChanges.subscribe((type: ListingType) => {
       const rentPeriodControl = this.form.get('rentPeriod');
       if (type === 'rent') {
@@ -214,7 +220,7 @@ export class AddProductModalComponent implements OnChanges {
 
     this.form.patchValue({
       title: listing.title,
-      slug: listing.slug || '',
+      slug: this.titleToSlug(listing.title) || listing.slug || '',
       description: listing.description || '',
       type: listing.type,
       categoryId,
@@ -269,6 +275,32 @@ export class AddProductModalComponent implements OnChanges {
     return this.type === 'rent';
   }
 
+  /**
+   * Convert title to URL slug: transliterate Georgian to Latin (English keyboard),
+   * then lowercase, replace spaces with hyphens, strip non [a-z0-9-].
+   */
+  private titleToSlug(title: string): string {
+    if (!title || typeof title !== 'string') return '';
+    const transliterated = this.transliterateGeorgianToLatin(title.trim());
+    return transliterated
+      .toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+  }
+
+  /** Georgian script → Latin (ISO 9984–style) for URL-friendly slugs. */
+  private transliterateGeorgianToLatin(s: string): string {
+    const geoToLat: Record<string, string> = {
+      ა: 'a', ბ: 'b', გ: 'g', დ: 'd', ე: 'e', ვ: 'v', ზ: 'z', თ: 't', ი: 'i',
+      კ: 'k', ლ: 'l', მ: 'm', ნ: 'n', ო: 'o', პ: 'p', ჟ: 'zh', რ: 'r', ს: 's',
+      ტ: 't', უ: 'u', ფ: 'f', ქ: 'k', ღ: 'gh', ყ: 'q', შ: 'sh', ჩ: 'ch', ც: 'ts',
+      ძ: 'dz', წ: 'ts', ჭ: 'ch', ხ: 'kh', ჯ: 'j', ჰ: 'h',
+    };
+    return Array.from(s, (c) => geoToLat[c] ?? c).join('');
+  }
+
   onBackdropClick(event: MouseEvent): void {
     if ((event.target as HTMLElement).hasAttribute('data-modal-backdrop')) {
       this.emitClose();
@@ -313,9 +345,14 @@ export class AddProductModalComponent implements OnChanges {
     const selectedRegion = regionId ? this.regionOptions.find((r) => r.id === regionId) : null;
     const selectedCity = cityId ? this.cityOptions.find((c) => c.id === cityId) : null;
 
+    const slugValue =
+      raw.slug?.trim() ?
+        raw.slug.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      : this.titleToSlug(raw.title || '');
+
     const payload: ListingCreatePayload = {
       title: raw.title.trim(),
-      ...(raw.slug?.trim() ? { slug: raw.slug.trim().toLowerCase().replace(/\s+/g, '-') } : {}),
+      ...(slugValue ? { slug: slugValue } : {}),
       description: raw.description.trim(),
       type: raw.type,
 
