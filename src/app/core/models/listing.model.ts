@@ -15,6 +15,8 @@ export type ListingCondition = 'new' | 'used';
 
 export type ListingStatus = 'active' | 'sold' | 'rented' | 'expired';
 
+export type PromotionType = 'none' | 'highlighted' | 'featured' | 'homepageTop';
+
 export interface ListingCategory {
   name: string;
   slug: string;
@@ -39,15 +41,6 @@ export interface ListingSpecifications {
   capacity?: string;
   power?: string;
   [key: string]: string | number | boolean | undefined;
-}
-
-export interface ListingMonetization {
-  isFeatured: boolean;
-  featuredUntil?: string; // ISO date
-  isHighlighted: boolean;
-  highlightUntil?: string;
-  isHomepageTop: boolean;
-  homepageUntil?: string;
 }
 
 export interface Listing {
@@ -78,12 +71,8 @@ export interface Listing {
 
   status: ListingStatus;
 
-  isFeatured: boolean;
-  featuredUntil?: string;
-  isHighlighted: boolean;
-  highlightUntil?: string;
-  isHomepageTop: boolean;
-  homepageUntil?: string;
+  promotionType: PromotionType;
+  promotionExpiresAt?: string | null;
 
   views: number;
   saves: number;
@@ -120,12 +109,8 @@ export interface ListingCreatePayload {
 
   status?: ListingStatus;
 
-  isFeatured?: boolean;
-  featuredUntil?: string;
-  isHighlighted?: boolean;
-  highlightUntil?: string;
-  isHomepageTop?: boolean;
-  homepageUntil?: string;
+  promotionType?: PromotionType;
+  promotionExpiresAt?: string | null;
 
   seoTitle?: string;
   seoDescription?: string;
